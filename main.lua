@@ -36,6 +36,10 @@ function love.keypressed(key)
 		player:down()
 	end
 
+    if key == " " then
+        player:jump()
+    end
+
 end
 
 function love.keyreleased(key)

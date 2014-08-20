@@ -7,12 +7,17 @@ function Player2.new()
 	self.width = 20
 	self.height = 20
 
+    self.grounded = false
+    self.jumping = false
+
 	self.moveright = false
 	self.moveleft = false
 	self.moveleft = false
 
 	self.x = 60
 	self.y = 20
+
+    self.dy = 1
 
 	self.speed = 150
 
@@ -96,6 +101,9 @@ function Player2:getCollidableColumns()
 	return hitsy
 end
 
+-- XXX: check this 0.2 spacing in the xmaxleft/xmaxright and ymaxbottom/ymaxtop!
+-- this seems to fix some shit in the update(dt) function regarding the 'spacing'
+
 -- This function gets the closes obstacle on the player's X axis.
 function Player2:getClosestObstacleOnX(collidableRows)
 	local xmaxleft = 0
@@ -107,10 +115,10 @@ function Player2:getClosestObstacleOnX(collidableRows)
 				local tx, ty, tw, th = self.level:getBoundsForTile(tilex, tiley)
 				if tx + tw <= self.x then
 					-- detect the player's utmost left coord (x) with the bleh
-					xmaxleft = math.max(xmaxleft, tx + tw)
+					xmaxleft = math.max(xmaxleft, tx + tw + 0.2)
 				end
 				if tx >= self.x + self.width then
-					xmaxright = math.min(xmaxright, tx)
+					xmaxright = math.min(xmaxright, tx - 0.2)
 				end
 			end
 		end
@@ -128,10 +136,10 @@ function Player2:getClosestObstacleOnY(collidableColumns)
 			if self.level.map[tiley][tilex] == 1 then
 				local tx, ty, tw, th = self.level:getBoundsForTile(tilex, tiley)
 				if self.y + self.height <= ty then
-					ymaxbottom = math.min(ymaxbottom, ty)
+					ymaxbottom = math.min(ymaxbottom, ty - 0.2)
 				end
 				if ty + th <= self.y then
-					ymaxtop = math.max(ymaxtop, ty + th)
+					ymaxtop = math.max(ymaxtop, ty + th + 0.2)
 				end
 			end
 		end
@@ -148,24 +156,34 @@ function Player2:update(dt)
 	self:getClosestObstacleOnX(self.hitsx)
 	self:getClosestObstacleOnY(self.hitsy)
 
-    speed = 500
-
-    if self.moveleft then self.x = self.x - dt * speed end
-    if self.moveright then self.x = self.x + dt * speed end
-    if self.moveup then self.y = self.y - dt * speed end
-    if self.movedown then self.y = self.y + dt * speed end
-
+    if self.moveleft then self.x = self.x - dt * self.speed end
+    if self.moveright then self.x = self.x + dt * self.speed end
+    --if self.moveup then self.y = self.y - dt * self.speed * 2.5 end
+    --if self.movedown then self.y = self.y + dt * self.speed end
+    
     -- always fall down plx.
+    if self.y + self.height <= self.bound_bottom then
+        self.fallspeed = self.fallspeed + 4
+        self.y = self.y + self.fallspeed * dt * 5
+        self.grounded = false
+    end
 
     -- make sure we keep between the given bounds. Meaning if our new x 
     -- position exceeds the bounds of the direction we're traveling, reset
     -- our x position to the maximum bounds, with a little spacing. This
     -- feels like a hack to prevent extraneous bounds exceeding and shit.
     -- It is in fact some extra padding.
-    local spacing = 0.5
-    if self.x < self.bound_left then self.x = self.bound_left + spacing end
-    if self.x + self.width > self.bound_right then self.x = self.bound_right - self.width - spacing end
-    if self.y + self.height > self.bound_bottom then self.y = self.bound_bottom - self.height - spacing end
+    --
+    -- XXX: SPACING LOOKS LIKE HACKERY
+    local spacing = 0.0
+    if self.x <= self.bound_left then self.x = self.bound_left + spacing end
+    if self.x + self.width >= self.bound_right then self.x = self.bound_right - self.width - spacing end
+    if self.y + self.height >= self.bound_bottom then 
+        self.y = self.bound_bottom - self.height - spacing 
+        self.grounded = true
+        self.jumping = false
+        self.fallspeed = 0
+    end
     if self.y < self.bound_top then self.y = self.bound_top + spacing end
 end
 
@@ -181,9 +199,14 @@ function Player2:up()
 	self.moveup = true
 end
 
-
 function Player2:down()
 	self.movedown = true
+end
+
+function Player2:jump()
+    if self.grounded then
+        self.jumping = true
+    end
 end
 
 
@@ -223,7 +246,12 @@ function Player2:draw()
 
 
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print(self.bound_left, 500, 0)
+	love.graphics.print("Bounds on the left:   " .. self.bound_left, 500, 0 * 12)
+	love.graphics.print("Bounds on the right:  " .. self.bound_right, 500, 1 * 12)
+	love.graphics.print("Bounds on the top:    " .. self.bound_top, 500, 2 * 12)
+	love.graphics.print("Bounds on the bottom: " .. self.bound_bottom, 500, 3 * 12)
+	love.graphics.print("Grounded: " .. tostring(self.grounded), 500, 4 * 12)
+	love.graphics.print("Jumping: " .. tostring(self.jumping), 500, 5 * 12)
 
 	local xmiddle = (self.x + self.width) - (self.width / 2)
 	local ymiddle = (self.y + self.height) - (self.height / 2)
