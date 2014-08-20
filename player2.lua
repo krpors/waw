@@ -25,6 +25,8 @@ function Player2.new()
 	self.bound_bottom = 0 -- ... to the BOTTOM
 	self.bound_top = 0 -- ...to the TOP.
 
+    self.fallspeed = 1
+
 	return self
 end
 
@@ -140,44 +142,31 @@ function Player2:getClosestObstacleOnY(collidableColumns)
 end
 
 function Player2:update(dt)
-	-- TODO: calculate newx and newy ahead, THEN calculate new closest obstacle,
-	-- THEN compare to prevent the extra 5's 
 	self.hitsx = self:getCollidableRows()
 	self.hitsy = self:getCollidableColumns()
 
 	self:getClosestObstacleOnX(self.hitsx)
 	self:getClosestObstacleOnY(self.hitsy)
 
-	local newx = self.x
-	local newy = self.y
+    speed = 500
 
-	-- calculate delta's left, right
-	local deltaleft = self.x - self.bound_left
-	local deltaright = self.bound_right - (self.x + self.width)
-	local deltabottom = self.bound_bottom - (self.y + self.height)
-	local deltatop = self.y - self.bound_top
+    if self.moveleft then self.x = self.x - dt * speed end
+    if self.moveright then self.x = self.x + dt * speed end
+    if self.moveup then self.y = self.y - dt * speed end
+    if self.movedown then self.y = self.y + dt * speed end
 
-	if self.moveleft and deltaleft > 5 then
-		newx = self.x - self.speed * dt
-	end
-	if self.moveright and deltaright > 5 then
-		newx = self.x + self.speed * dt
-	end
+    -- always fall down plx.
 
-	if deltabottom > 5 then
-		newy = newy + dt * 100
-	end
-	--[[
-	if self.movedown and deltabottom > 5 then
-		newy = self.y + self.speed * dt
-	end
-	if self.moveup and deltatop > 5 then
-		newy = self.y - self.speed * dt
-	end
-	]]
-
-	self.x = newx
-	self.y = newy
+    -- make sure we keep between the given bounds. Meaning if our new x 
+    -- position exceeds the bounds of the direction we're traveling, reset
+    -- our x position to the maximum bounds, with a little spacing. This
+    -- feels like a hack to prevent extraneous bounds exceeding and shit.
+    -- It is in fact some extra padding.
+    local spacing = 0.5
+    if self.x < self.bound_left then self.x = self.bound_left + spacing end
+    if self.x + self.width > self.bound_right then self.x = self.bound_right - self.width - spacing end
+    if self.y + self.height > self.bound_bottom then self.y = self.bound_bottom - self.height - spacing end
+    if self.y < self.bound_top then self.y = self.bound_top + spacing end
 end
 
 function Player2:left()
