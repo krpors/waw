@@ -9,6 +9,9 @@ function Player2.new()
 
     self.grounded = false
     self.jumping = false
+	
+	-- ydelta is used to calculate the speed of falling or jumping.
+    self.ydelta = 1
 
 	self.moveright = false
 	self.moveleft = false
@@ -17,9 +20,7 @@ function Player2.new()
 	self.x = 60
 	self.y = 20
 
-    self.dy = 1
-
-	self.speed = 150
+	self.speed = 250
 
 	self.hitsx = {}
 	self.hitsy = {}
@@ -29,8 +30,6 @@ function Player2.new()
 	self.bound_right = 0 -- ... to the RIGHT
 	self.bound_bottom = 0 -- ... to the BOTTOM
 	self.bound_top = 0 -- ...to the TOP.
-
-    self.fallspeed = 1
 
 	return self
 end
@@ -107,18 +106,19 @@ end
 -- This function gets the closes obstacle on the player's X axis.
 function Player2:getClosestObstacleOnX(collidableRows)
 	local xmaxleft = 0
-	local xmaxright = 9000 -- TODO: THIS MUST BE SET TO THE MAP'S MAXIMUM WIDTH
+	local xmaxright = 800 -- TODO: THIS MUST BE SET TO THE MAP'S MAXIMUM WIDTH
+	-- Only iterate through the array of collidable rows:
 	for i, tiley in ipairs(collidableRows) do
+		-- then iterate through every available 
 		for tilex = 1, #self.level.map[tiley] do
-			-- only check with collidable tiles plx
-			if self.level.map[tiley][tilex] == 1 then
+			-- only check with collidable tiles plx (tiletype 1)
+			if self.level.map[tiley][tilex] == 1 or self.level.map[tiley][tilex] == 3 then
 				local tx, ty, tw, th = self.level:getBoundsForTile(tilex, tiley)
 				if tx + tw <= self.x then
-					-- detect the player's utmost left coord (x) with the bleh
-					xmaxleft = math.max(xmaxleft, tx + tw + 0.2)
+					xmaxleft = math.max(xmaxleft, tx + tw + 1)
 				end
 				if tx >= self.x + self.width then
-					xmaxright = math.min(xmaxright, tx - 0.2)
+					xmaxright = math.min(xmaxright, tx - 1)
 				end
 			end
 		end
@@ -129,17 +129,17 @@ function Player2:getClosestObstacleOnX(collidableRows)
 end
 
 function Player2:getClosestObstacleOnY(collidableColumns)
-	local ymaxbottom = 9000 -- TODO: THIS MUST BE SET TO THE MAP'S MAXIMUM HEIGHT
-	local ymaxtop = 0 
+	local ymaxbottom = 600 -- TODO: THIS MUST BE SET TO THE MAP'S MAXIMUM HEIGHT
+	local ymaxtop = -100
 	for i, tilex in ipairs(collidableColumns) do
 		for tiley = 1, #self.level.map do
-			if self.level.map[tiley][tilex] == 1 then
+			if self.level.map[tiley][tilex] == 1 or self.level.map[tiley][tilex] == 3 then
 				local tx, ty, tw, th = self.level:getBoundsForTile(tilex, tiley)
-				if self.y + self.height <= ty then
-					ymaxbottom = math.min(ymaxbottom, ty - 0.2)
+				if self.y + self.height < ty then
+					ymaxbottom = math.min(ymaxbottom, ty - 1)
 				end
 				if ty + th <= self.y then
-					ymaxtop = math.max(ymaxtop, ty + th + 0.2)
+					ymaxtop = math.max(ymaxtop, ty + th + 1)
 				end
 			end
 		end
@@ -156,35 +156,47 @@ function Player2:update(dt)
 	self:getClosestObstacleOnX(self.hitsx)
 	self:getClosestObstacleOnY(self.hitsy)
 
-    if self.moveleft then self.x = self.x - dt * self.speed end
-    if self.moveright then self.x = self.x + dt * self.speed end
-    --if self.moveup then self.y = self.y - dt * self.speed * 2.5 end
-    --if self.movedown then self.y = self.y + dt * self.speed end
+    if self.moveleft then self.x = math.floor(self.x - dt * self.speed) end
+    if self.moveright then self.x = math.ceil(self.x + dt * self.speed) end
+    if self.movedown then self.y = self.y + dt * self.speed end
     
     -- always fall down plx.
-    if self.y + self.height <= self.bound_bottom then
-        self.fallspeed = self.fallspeed + 4
-        self.y = self.y + self.fallspeed * dt * 5
+    if self.y + self.height <= self.bound_bottom and not grounded then
+        self.y = self.y + self.ydelta * dt * 70
         self.grounded = false
     end
 
-    -- make sure we keep between the given bounds. Meaning if our new x 
-    -- position exceeds the bounds of the direction we're traveling, reset
-    -- our x position to the maximum bounds, with a little spacing. This
-    -- feels like a hack to prevent extraneous bounds exceeding and shit.
-    -- It is in fact some extra padding.
-    --
-    -- XXX: SPACING LOOKS LIKE HACKERY
-    local spacing = 0.0
-    if self.x <= self.bound_left then self.x = self.bound_left + spacing end
-    if self.x + self.width >= self.bound_right then self.x = self.bound_right - self.width - spacing end
-    if self.y + self.height >= self.bound_bottom then 
-        self.y = self.bound_bottom - self.height - spacing 
-        self.grounded = true
-        self.jumping = false
-        self.fallspeed = 0
-    end
-    if self.y < self.bound_top then self.y = self.bound_top + spacing end
+	local dxleft = self.x - self.bound_left
+	local dxright = self.bound_right - (self.x + self.width)
+	local dybottom = self.bound_bottom - (self.y + self.height)
+	local dytop = self.y - self.bound_top
+
+	if dxleft <= 0 then
+		self.x = self.bound_left
+	end
+	
+	if dxright < 0 then
+		self.x = self.bound_right - self.width
+	end
+
+	-- did we hit the bottom bounds? If so, set ourselves to grounded
+	-- and that we are able to jump.
+	if dybottom < 0 then
+		self.y = self.bound_bottom - self.height
+		self.ydelta = 1
+		self.grounded = true
+		self.jumping = false
+	end
+
+	-- if the player hits the top bounds. If we're jumping against it
+	-- the means we shouldn't hover about, but fall down immediately
+	-- with the normal velocity
+	if dytop < 0 then
+		self.ydelta = 1
+		self.y = self.bound_top
+	end
+
+	self.ydelta = self.ydelta + (dt * 15)
 end
 
 function Player2:left()
@@ -206,6 +218,7 @@ end
 function Player2:jump()
     if self.grounded then
         self.jumping = true
+		self.ydelta = self.ydelta - 8
     end
 end
 
