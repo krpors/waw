@@ -4,12 +4,16 @@ Player2.__index = Player2
 function Player2.new()
 	local self = setmetatable({}, Player2)
 
+	self.soundJump = love.audio.newSource("sounds/jump.wav", "static")
+	self.soundBump = love.audio.newSource("sounds/bump.wav", "static")
+
 	self.width = 20
 	self.height = 20
 
     self.grounded = false
     self.jumping = false
 	
+	self.xdelta = -2
 	-- ydelta is used to calculate the speed of falling or jumping.
     self.ydelta = 1
 
@@ -17,10 +21,11 @@ function Player2.new()
 	self.moveleft = false
 	self.moveleft = false
 
+
 	self.x = 60
 	self.y = 20
 
-	self.speed = 250
+	self.speed = 40
 
 	self.hitsx = {}
 	self.hitsy = {}
@@ -156,9 +161,20 @@ function Player2:update(dt)
 	self:getClosestObstacleOnX(self.hitsx)
 	self:getClosestObstacleOnY(self.hitsy)
 
-    if self.moveleft then self.x = math.floor(self.x - dt * self.speed) end
-    if self.moveright then self.x = math.ceil(self.x + dt * self.speed) end
-    if self.movedown then self.y = self.y + dt * self.speed end
+    if self.moveleft then 
+		--self.x = math.floor(self.x - dt * self.speed)
+		-- increase velocity to the left as long as we are moving left.
+		self.xdelta = math.min(self.xdelta + 1, self.speed) 
+		self.x = self.x - self.xdelta * dt * 8
+	end
+    if self.moveright then 
+		--self.x = math.ceil(self.x + dt * self.speed)
+		-- increase velocity to the right as long as we are moving right.
+		self.xdelta = self.xdelta + 1
+		self.xdelta = math.min(self.xdelta + 1, self.speed) 
+		self.x = self.x + self.xdelta * dt * 8
+	end
+
     
     -- always fall down plx.
     if self.y + self.height <= self.bound_bottom and not grounded then
@@ -173,19 +189,22 @@ function Player2:update(dt)
 
 	if dxleft <= 0 then
 		self.x = self.bound_left
+		self.xdelta = 0
 	end
 	
 	if dxright < 0 then
 		self.x = self.bound_right - self.width
+		self.xdelta = 0
 	end
 
 	-- did we hit the bottom bounds? If so, set ourselves to grounded
-	-- and that we are able to jump.
+	-- and that we are able to jump. 
 	if dybottom < 0 then
 		self.y = self.bound_bottom - self.height
 		self.ydelta = 1
 		self.grounded = true
 		self.jumping = false
+		self.soundJump:stop()
 	end
 
 	-- if the player hits the top bounds. If we're jumping against it
@@ -194,6 +213,7 @@ function Player2:update(dt)
 	if dytop < 0 then
 		self.ydelta = 1
 		self.y = self.bound_top
+		self.soundBump:play()
 	end
 
 	self.ydelta = self.ydelta + (dt * 15)
@@ -201,10 +221,12 @@ end
 
 function Player2:left()
 	self.moveleft = true
+	self.xdelta = -2
 end
 
 function Player2:right()
 	self.moveright = true
+	self.xdelta = 2
 end
 
 function Player2:up()
@@ -217,6 +239,7 @@ end
 
 function Player2:jump()
     if self.grounded then
+		self.soundJump:play()
         self.jumping = true
 		self.ydelta = self.ydelta - 8
     end
