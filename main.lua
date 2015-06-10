@@ -35,10 +35,9 @@ function love.keypressed(key)
 	if key == "down" then
 		player:down()
 	end
-
-    if key == " " then
-        player:jump()
-    end
+	if key == " " then
+		player:jump()
+	end
 
 end
 
