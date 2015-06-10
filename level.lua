@@ -43,22 +43,27 @@ end
 function Level:draw()
 	for y = 1, #self.map do
 		for x = 1, #self.map[y] do
+            thetile = nil
 			if self.map[y][x] == 0 then
 				love.graphics.setColor(40, 40, 40)
-				love.graphics.draw(self.imgtiles, self.loltile, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+                thetile = self.loltile
 			elseif self.map[y][x] == 1 then
 				love.graphics.setColor(255, 255, 255)
-				love.graphics.draw(self.imgtiles, self.loltile, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+                thetile = self.loltile
 			elseif self.map[y][x] == 2 then
 				love.graphics.setColor(255, 255, 255)
-				love.graphics.draw(self.imgtiles, self.loltile2, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+                thetile = self.loltile2
 			elseif self.map[y][x] == 3 then
 				love.graphics.setColor(255, 255, 255)
-				love.graphics.draw(self.imgtiles, self.grasstile1, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+                thetile = self.grasstile1
 			elseif self.map[y][x] == 4 then
 				love.graphics.setColor(255, 255, 255)
-				love.graphics.draw(self.imgtiles, self.grasstile2, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+                thetile = self.grasstile2
 			end
+
+            if thetile ~= nil then
+				love.graphics.draw(self.imgtiles, thetile, (x-1) * self.tilesize, (y-1) * self.tilesize, 0, self.tilesize / 16, self.tilesize / 16)
+            end
 		end
 	end
 end
