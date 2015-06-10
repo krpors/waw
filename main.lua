@@ -1,5 +1,5 @@
 require "level"
-require "player2"
+require "player"
 
 local level
 local player
@@ -7,7 +7,7 @@ local player
 function love.load()
 	love.window.setMode(800, 600, {fsaa=2})
 	level = Level.new()
-	player = Player2.new()
+	player = Player.new()
 	player:setLevel(level)
 end
 
