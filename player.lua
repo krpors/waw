@@ -7,8 +7,8 @@ function Player.new()
 	self.soundJump = love.audio.newSource("sounds/jump.wav", "static")
 	self.soundBump = love.audio.newSource("sounds/bump.wav", "static")
 
-	self.width = 20
-	self.height = 20
+	self.width = 30
+	self.height = 30
 	self.speed = 150
 
 	self.x = 60
@@ -40,22 +40,25 @@ function Player:posToTile(x, y)
 	return tx + 1, ty + 1
 end
 
--- Gets the cells the player currently occupies.
+-- Gets the cells the player is about to occupy when he's at the given (x,y) position.
+-- Since a player (bounding box) can occupy 1 or more tiles, we need to check a range
+-- from the top left to the bottom right.
 function Player:getOccupiedCells(x, y)
 	local cells = {} -- a table, yes.
 
-	-- check 'top left corner' of player
-	local tilex, tiley = self:posToTile(x, y)
-	cells[1] = { x = tilex, y = tiley }
-	-- check 'top right corner' of player
-	tilex, tiley = self:posToTile(x + self.width, y)
-	cells[2] = { x = tilex, y = tiley }
-	-- check 'bottom left corner' of player
-	tilex, tiley = self:posToTile(x, y + self.height)
-	cells[3] = { x = tilex, y = tiley }
-	-- check 'bottom right corner' of player
-	tilex, tiley = self:posToTile(x + self.width, y + self.height)
-	cells[4] = { x = tilex, y = tiley }
+	-- What x,y tile is occupied at the top left corner of the player's bounding box?
+	local txmin, tymin = self:posToTile(x, y)
+	-- And whats the x,y tile of the bottom right corner?
+	local txmax, tymax = self:posToTile(x + self.width, y + self.height)
+
+	-- Iterate through the tiles, and add those to the 'hittable' cells.
+	local cindex = 1
+	for yy = tymin, tymax do
+		for xx = txmin, txmax do
+			cells[cindex] = { x = xx, y = yy }	
+			cindex = cindex + 1
+		end
+	end
 
 	return cells
 end
@@ -94,9 +97,7 @@ function Player:update(dt)
 		newy = self.y - self.speed * dt
 	end
 
-	if self.moving_down then
-		newy = self.y + self.speed * dt
-	end
+	newy = self.y + self.speed * dt
 
 	-- If newx is not nil (i.e. we're moving either left or right, do some stuff.
 	if newx then
@@ -152,13 +153,13 @@ function Player:draw()
 	love.graphics.setColor(255, 255, 255)
 	love.graphics.print("x: " .. self.x, 500, 0 * 12)
 
-	love.graphics.rectangle("fill", self.x, self.y, 20, 20)
+	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
 	local cells = self:getOccupiedCells(self.x, self.y)
 	for i, v in ipairs(cells) do
 		love.graphics.setColor(255, 255, 255)
 		love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 600, i * 12 + (12))
-		love.graphics.setColor(255, 0, 0, 50)
+		love.graphics.setColor(255, 0, 0, 150)
 		love.graphics.rectangle("fill", (v.x - 1) * 50, (v.y - 1) * 50, 50, 50)
 	end
 end
