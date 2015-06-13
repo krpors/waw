@@ -69,6 +69,9 @@ function Level:draw()
 			end
 		end
 	end
+    
+    love.graphics.setColor(255, 255, 255)
+    love.graphics.print("Welcome!!! A b c 123 454", 0, -20)
 
     love.graphics.setColor(255, 0, 0)
     love.graphics.print("Yeah, jumping off here", 1050, 600)

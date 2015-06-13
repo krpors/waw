@@ -4,10 +4,6 @@ Player.__index = Player
 function Player.new()
 	local self = setmetatable({}, Player)
 
-	self.soundJump = love.audio.newSource("sounds/jump.wav", "static")
-	self.soundBump = love.audio.newSource("sounds/bump.wav", "static")
-	self.soundDrop = love.audio.newSource("sounds/drop.wav", "static")
-
 	self.width = 30
 	self.height = 30
 	self.speed = 200
@@ -123,7 +119,7 @@ function Player:update(dt)
 	self.g = self.g + self.speed * dt * 5
 
 	if self.jumping and not self.falling then
-		self.soundJump:play()
+		soundJump:play()
 		self.g = -500 -- TODO and this one
 	end
 
@@ -177,15 +173,20 @@ end
 -- Actually draws the player on the screen
 function Player:draw()
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("G: " .. self.g, 500, 0 * 12)
-
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+
+	-- pop the camera, draw some debuggin' crap
+	camera:unset()
+	love.graphics.setColor(255, 255, 255)
+	love.graphics.print("G: " .. self.g, 400, 0 * 12)
+
 
 	local cells = self:getOccupiedCells(self.x, self.y)
 	for i, v in ipairs(cells) do
 		love.graphics.setColor(255, 255, 255)
-		love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 600, i * 12 + (12))
+		love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 400, i * 12 + (12))
 		love.graphics.setColor(255, 0, 0, 150)
 		--love.graphics.rectangle("fill", (v.x - 1) * 50, (v.y - 1) * 50, 50, 50)
 	end
+	camera:set()
 end

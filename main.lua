@@ -2,6 +2,8 @@ require "level"
 require "player"
 require "camera"
 
+local font
+
 local level
 local player
 local music
@@ -11,6 +13,10 @@ local zooming_out = false
 
 local zoomiter = 1
 local zoomspeed = 1
+
+soundJump = love.audio.newSource("sounds/jump.wav", "static")
+soundBump = love.audio.newSource("sounds/bump.wav", "static")
+soundDrop = love.audio.newSource("sounds/drop.wav", "static")
 
 function love.load()
 	love.window.setMode(800, 600, {fsaa=2})
@@ -22,6 +28,12 @@ function love.load()
 	music = love.audio.newSource("sounds/razor-ub.it", "stream")
 	music:play()
 
+	alb = love.graphics.newImageFont("images/font.png", 
+		" abcdefghijklmnopqrstuvwxyz" ..
+    	"ABCDEFGHIJKLMNOPQRSTUVWXYZ0" ..
+    	"123456789.,!?-+/():;%&`'*#=[]\"")
+
+	love.graphics.setFont(alb)
 end
 
 function love.update(dt)
