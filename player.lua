@@ -6,10 +6,17 @@ function Player.new()
 
 	self.soundJump = love.audio.newSource("sounds/jump.wav", "static")
 	self.soundBump = love.audio.newSource("sounds/bump.wav", "static")
+	self.soundDrop = love.audio.newSource("sounds/drop.wav", "static")
 
 	self.width = 30
 	self.height = 30
-	self.speed = 150
+	self.speed = 200
+
+	-- the downward velocity
+	self.g = 0
+
+	self.jumping = false
+	self.falling = true 
 
 	self.x = 60
 	self.y = 60
@@ -71,7 +78,8 @@ function Player:isColliding(occupiedCells)
 	local collision = false
 	for k, v in ipairs(occupiedCells) do
 		if v.y > 0 and v.x > 0 then
-			if self.level.map[v.y][v.x] == 1 then
+			-- FIXME: when going off map, this will go horribly wrong
+			if self.level.map[v.y][v.x] == 1 or self.level.map[v.y][v.x] == 3 then
 				collision = true
 			end
 		end
@@ -80,7 +88,6 @@ function Player:isColliding(occupiedCells)
 end
 
 -- Updates the player's position by acting on movement by the actual player.
--- Also calculates gravity (TODO)
 function Player:update(dt)
 	local newx
 	local newy
@@ -97,8 +104,6 @@ function Player:update(dt)
 		newy = self.y - self.speed * dt
 	end
 
-	newy = self.y + self.speed * dt
-
 	-- If newx is not nil (i.e. we're moving either left or right, do some stuff.
 	if newx then
 		-- are we hitting the map bounds?
@@ -111,13 +116,30 @@ function Player:update(dt)
 		end
 	end
 
-	-- Same with newy.
-	if newy then
-		local offmap = self:isOffMap(self.x, newy)
-		local colliding = self:isColliding(self:getOccupiedCells(self.x, newy))
-		if not offmap and not colliding then
-			self.y = newy
-		end
+	-- TODO get rid of these magic number for the falling velocity
+	self.g = self.g + self.speed * dt * 5
+
+	if self.jumping and not self.falling then
+		self.soundJump:play()
+		self.g = -500 -- TODO and this one
+	end
+
+	-- always exert some force downwards, or up when jumping
+	newy = self.y + self.g * dt
+
+	local offmap = self:isOffMap(self.x, newy)
+	local colliding = self:isColliding(self:getOccupiedCells(self.x, newy))
+
+	if colliding or offmap then
+		self.falling = false
+		self.jumping = false
+		self.g = 0
+	else
+		self.falling = true
+	end
+
+	if not offmap and not colliding then
+		self.y = newy
 	end
 end
 
@@ -138,6 +160,7 @@ function Player:down()
 end
 
 function Player:jump()
+	self.jumping = true
 end
 
 
@@ -151,7 +174,7 @@ end
 -- Actually draws the player on the screen
 function Player:draw()
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("x: " .. self.x, 500, 0 * 12)
+	love.graphics.print("G: " .. self.g, 500, 0 * 12)
 
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
@@ -160,6 +183,6 @@ function Player:draw()
 		love.graphics.setColor(255, 255, 255)
 		love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 600, i * 12 + (12))
 		love.graphics.setColor(255, 0, 0, 150)
-		love.graphics.rectangle("fill", (v.x - 1) * 50, (v.y - 1) * 50, 50, 50)
+		--love.graphics.rectangle("fill", (v.x - 1) * 50, (v.y - 1) * 50, 50, 50)
 	end
 end
