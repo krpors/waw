@@ -1,28 +1,67 @@
 require "level"
 require "player"
+require "camera"
 
 local level
 local player
-
 local music
+
+local zooming_in = false
+local zooming_out = false
+
+local zoomiter = 1
+local zoomspeed = 1
 
 function love.load()
 	love.window.setMode(800, 600, {fsaa=2})
+	love.window.setTitle("Love2D prototyping")
 	level = Level.new()
 	player = Player.new()
 	player:setLevel(level)
 
 	music = love.audio.newSource("sounds/razor-ub.it", "stream")
 	music:play()
+
 end
 
 function love.update(dt)
 	player:update(dt)
+	camera:setPosition(player.x - 800/2 * camera.scaleX, player.y - 600/2 * camera.scaleY)
+
+	if zooming_in then
+		if zoomspeed <= 0.5 then
+			zooming_in = false
+		else
+			zoomspeed = zoomspeed - dt
+			camera:setScale(zoomspeed, zoomspeed)
+		end
+	end
+
+	if zooming_out then
+		if zoomspeed >= 2 then
+			zooming_out = false
+		else
+			zoomspeed = zoomspeed + dt
+			camera:setScale(zoomspeed, zoomspeed)
+		end
+	end
 end
 
 function love.keypressed(key)
 	if key == "escape" then
 		love.event.quit()
+	end
+
+	if key == "a" then
+		zooming_in = true
+		zooming_out = false
+		--camera:scale(2, 2)
+	end
+
+	if key == "s" then
+		zooming_in = false
+		zooming_out = true
+		--camera:scale(0.5, 0.5)
 	end
 
 	if key == "left" then
@@ -53,6 +92,10 @@ function love.keyreleased(key)
 end
 
 function love.draw()
+	camera:set()
+
 	level:draw()
 	player:draw()
+
+	camera:unset()
 end

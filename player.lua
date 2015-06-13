@@ -31,12 +31,15 @@ end
 -- Checks whether the player exceeds the map's bounds (top, left, bottom and right).
 -- If so, returns true, else it will return false.
 function Player:isOffMap(x, y)
+	--[[
 	if x < 0 or x + self.width > 800 or
 		y < 0 or y + self.height > 600 then
 		return true
 	else 
 		return false
 	end
+	]]
+	return false
 end
 
 -- Checks a certain x,y position to see which tile x and tile y it occupies.
