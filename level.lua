@@ -7,19 +7,34 @@ function Level.new()
 	self.imgtiles = love.graphics.newImage("images/tiles.png")
 	self.imgtiles:setFilter("linear", "nearest")
 
+    -- register some tile types and stuff.
 	self.maintile = love.graphics.newQuad(222, 712, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.bgtile = love.graphics.newQuad(205, 627, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.loltile2 = love.graphics.newQuad(188, 627, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.grasstile1 = love.graphics.newQuad(171, 695, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.grasstile2 = love.graphics.newQuad(171, 678, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 
+    self.tiletypes = {
+        [0] = nil, -- 0 means draw no block.
+        self.maintile, 
+        self.grasstile2,
+        self.grasstile1, 
+        self.loltile2, 
+    }
+
 	self.map = {
-		{ 3, 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 3 },
+		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 3, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+		{ 3, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
+		{ 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 3 },
 		{ 3, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 4, 4, 4, 4, 4 },
 		{ 3, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
+		{ 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
 		{ 3, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1 },
-		{ 3, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
+		{ 3, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
 		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
 		{ 3, 0, 0, 0, 0, 1, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 0, 0, 0, 0, 0 },
 		{ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
@@ -44,27 +59,17 @@ function Level:update(dt)
 end
 
 function Level:draw()
+    love.graphics.setBackgroundColor(22,22,22)
+
 	for y = 1, #self.map do
 		for x = 1, #self.map[y] do
-			thetile = nil
-			if self.map[y][x] == 0 then
-				--love.graphics.setColor(40, 40, 40)
-				thetile = self.bgtile
-			elseif self.map[y][x] == 1 then
-				love.graphics.setColor(255, 255, 255)
-				thetile = self.maintile
-			elseif self.map[y][x] == 2 then
-				love.graphics.setColor(255, 255, 255)
-				thetile = self.loltile2
-			elseif self.map[y][x] == 3 then
-				love.graphics.setColor(255, 255, 255)
-				thetile = self.grasstile1
-			elseif self.map[y][x] == 4 then
-				love.graphics.setColor(255, 255, 255)
-				thetile = self.grasstile2
-			end
+			local thetile = nil
+
+            local thetype = self.map[y][x]
+            thetile = self.tiletypes[thetype]
 
 			if thetile ~= nil then
+                love.graphics.setColor(255, 255, 255)
 				love.graphics.draw(self.imgtiles, thetile, (x-1) * self.tilesize - 1, (y-1) * self.tilesize - 1, 0, self.tilesize / 16, self.tilesize / 16)
 			end
 		end

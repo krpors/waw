@@ -15,7 +15,7 @@ function Player.new()
 	self.falling = true 
 
 	self.x = 60
-	self.y = 60
+	self.y = 660
 
 	return self
 end
