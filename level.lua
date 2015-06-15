@@ -59,7 +59,7 @@ function Level:update(dt)
 end
 
 function Level:draw()
-    love.graphics.setBackgroundColor(22,22,22)
+    love.graphics.setBackgroundColor(0, 0, 0)
 
 	for y = 1, #self.map do
 		for x = 1, #self.map[y] do
@@ -74,12 +74,4 @@ function Level:draw()
 			end
 		end
 	end
-    
-    love.graphics.setColor(255, 255, 255)
-    love.graphics.print("Welcome!!! A b c 123 454", 0, -20)
-
-    love.graphics.setColor(255, 0, 0)
-    love.graphics.print("Yeah, jumping off here", 1050, 600)
-    love.graphics.print("incurs the death penalty.", 1050, 612)
-    love.graphics.print("Fix it plx.", 1050, 624)
 end

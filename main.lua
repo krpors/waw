@@ -23,8 +23,11 @@ function love.load()
 	player = Player.new()
 	player:setLevel(level)
 
+	-- just playtesting here
+	camera:setBounds(0, 0, 400, 600/2)
+
 	music = love.audio.newSource("sounds/razor-ub.it", "stream")
---	music:play()
+	music:play()
 
 	alb = love.graphics.newImageFont("images/font.png", 
 		" abcdefghijklmnopqrstuvwxyz" ..
@@ -140,4 +143,11 @@ function love.draw()
 	player:draw()
 
 	camera:unset()
+
+	local lolcolor = { math.random() * 255, math.random() * 255, math.random() * 255}
+
+	love.graphics.scale(5, 5)
+	love.graphics.setColor(lolcolor[1] , lolcolor[2], lolcolor[3])
+	love.graphics.print("DOPERWT", math.random() * 2, math.random() * 2 + 5)
+
 end
