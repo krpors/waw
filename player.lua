@@ -17,6 +17,9 @@ function Player.new()
 	self.x = 60
 	self.y = 660
 
+	-- indicating we're about to die.
+	self.die = false
+
 	return self
 end
 
@@ -27,14 +30,18 @@ end
 -- Checks whether the player exceeds the map's bounds (top, left, bottom and right).
 -- If so, returns true, else it will return false.
 function Player:isOffMap(x, y)
-	--[[
-	if x < 0 or x + self.width > 800 or
-		y < 0 or y + self.height > 600 then
+	local numLevelRows = #self.level.map
+	local numLevelCols = #self.level.map[1]
+
+	local maxLevelHeight = self.level.tilesize * numLevelRows
+	local maxLevelWidth = self.level.tilesize * numLevelCols
+
+	if x < 0 or x + self.width > maxLevelWidth or
+		y < 0 or y + self.height > maxLevelHeight then
 		return true
 	else 
 		return false
 	end
-	]]
 	return false
 end
 
@@ -72,14 +79,17 @@ end
 -- Check the tiles the player currently occupies, then check whether one of those tiles
 -- is collidable. If so, return true, else false. The 'occupiedTiles' parameter should be
 -- a table where the key is an integer, and the value a table with x and y fields:
--- ot[num] = { x = 1, y = 2 } 
+-- occupiedCells[num] = { x = 1, y = 2 } 
 function Player:isColliding(occupiedCells)
 	local collision = false
-	for k, v in ipairs(occupiedCells) do
-		if v.y > 0 and v.x > 0 then
-			-- FIXME: when going off map, this will go horribly wrong
-			if self.level.map[v.y][v.x] == 1 or self.level.map[v.y][v.x] == 3 then
-				collision = true
+	for _, v in ipairs(occupiedCells) do
+		local row = self.level.map[v.y]
+		if row ~= nil then
+			local tileType = row[v.x]
+			if tileType ~= nil then
+				if tileType == 1 or tileType == 3 then
+					collision = true
+				end
 			end
 		end
 	end
