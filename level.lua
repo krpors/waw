@@ -8,6 +8,18 @@ function Level.new()
 	self.imgtiles:setFilter("linear", "nearest")
 
     -- register some tile types and stuff.
+    local w, h = self.imgtiles:getWidth(), self.imgtiles:getHeight()
+    -- collidable blocks:
+    self.cblock1 = love.graphics.newQuad(477, 899, 16, 16, w, h)
+    self.cblock5 = love.graphics.newQuad(511, 848, 16, 16, w, h)
+
+    -- wallblocks (borders of the map)
+    self.wblock1 = love.graphics.newQuad(137, 797, 16, 16, w, h)
+    -- uncollidables:
+    self.ublock1 = love.graphics.newQuad(477, 882, 16, 16, w, h)
+    self.ublock2 = love.graphics.newQuad(494, 882, 16, 16, w, h)
+    self.ublock3 = love.graphics.newQuad(494, 882, 16, 16, w, h)
+
 	self.maintile = love.graphics.newQuad(222, 712, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.bgtile = love.graphics.newQuad(205, 627, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
 	self.loltile2 = love.graphics.newQuad(188, 627, 16, 16, self.imgtiles:getWidth(), self.imgtiles:getHeight())
@@ -16,33 +28,14 @@ function Level.new()
 
     self.tiletypes = {
         [0] = nil, -- 0 means draw no block.
-        self.maintile, 
-        self.grasstile2,
-        self.grasstile1, 
-        self.loltile2, 
+        self.cblock1,
+        self.cblock5,
+        self.wblock1,
+        self.ublock1,
     }
-
-	self.map = {
-		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-		{ 3, 3, 3, 3, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 3, 3, 0, 3 },
-		{ 3, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0 },
-		{ 3, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 1, 1 },
-		{ 3, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1 },
-		{ 3, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
-		{ 3, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 0 },
-		{ 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 },
-		{ 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0 },
-		{ 3, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 },
-	}
+    
+    chunk = love.filesystem.load("levels/001.lua")
+    self.map = chunk()
 
 	self.tilesize = 50
 
@@ -54,6 +47,21 @@ end
 -- table.
 function Level:getDimensions()
 	return #self.map * self.tilesize, #self.map[1] * self.tilesize
+end
+
+-- Returns the player start position based on the map's properties. 
+-- Currently just grabs the first "p" in the level table.
+function Level:getPlayerStartPos() 
+    for y = 1, #self.map do
+        for x = 1, #self.map[y] do
+            if self.map[y][x] == "p" then
+                return (x - 1) * self.tilesize, (y - 1) * self.tilesize
+            end
+        end
+    end
+
+    -- nothing found:
+    return 0, 0
 end
 
 function Level:getBoundsForTile(x, y)

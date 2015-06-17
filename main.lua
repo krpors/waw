@@ -3,6 +3,8 @@ require "player"
 require "camera"
 require "layer"
 
+DEBUG = false
+
 local font
 
 local level
@@ -19,7 +21,7 @@ soundJump = love.audio.newSource("sounds/jump.wav", "static")
 soundBump = love.audio.newSource("sounds/bump.wav", "static")
 soundDrop = love.audio.newSource("sounds/drop.wav", "static")
 
-
+-- Loads up some background layers, parallax scrolling and such.
 function loadLayers()
 	local layer1 = Layer.new(0.2)
 	layer1:loadImage("images/norfair-01.bmp")
@@ -42,6 +44,10 @@ function love.load()
 	-- just playtesting here
 	local maxX, maxY = level:getDimensions()
 	camera:setBounds(0, 0, maxX / 3, maxY / 3)
+
+	local playerStartX, playerStartY = level:getPlayerStartPos()
+	player.x = playerStartX
+	player.y = playerStartY
 
 	music = love.audio.newSource("sounds/razor-ub.it", "stream")
 	--music:play()
@@ -70,6 +76,10 @@ function love.keypressed(key)
 	if key == "up" then player:up() end
 	if key == "down" then player:down() end
 	if key == " " then player:jump() end
+	if key == "d" then DEBUG = not DEBUG end
+	if key == "l" then 
+		level.map = love.filesystem.load("levels/002.lua")()
+	end
 end
 
 function love.keyreleased(key)
@@ -87,4 +97,9 @@ function love.draw()
 	player:draw()
 
 	camera:unset()
+
+	if DEBUG then
+		love.graphics.setColor(255, 255, 255)
+		love.graphics.print("DEBUGGING is ON", 0, 0)
+	end
 end

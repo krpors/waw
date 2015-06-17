@@ -87,7 +87,7 @@ function Player:isColliding(occupiedCells)
 		if row ~= nil then
 			local tileType = row[v.x]
 			if tileType ~= nil then
-				if tileType == 1 or tileType == 3 then
+				if tileType == 1 or tileType == 2 or tileType == 3 then
 					collision = true
 				end
 			end
@@ -186,17 +186,22 @@ function Player:draw()
 	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
 
 	-- pop the camera, draw some debuggin' crap
-	camera:unset()
-	love.graphics.setColor(255, 255, 255)
-	love.graphics.print("G: " .. self.g, 400, 0 * 12)
+	if DEBUG then
+		camera:unset()
 
-
-	local cells = self:getOccupiedCells(self.x, self.y)
-	for i, v in ipairs(cells) do
 		love.graphics.setColor(255, 255, 255)
-		love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 400, i * 12 + (12))
-		love.graphics.setColor(255, 0, 0, 150)
-		--love.graphics.rectangle("fill", (v.x - 1) * 50, (v.y - 1) * 50, 50, 50)
+		love.graphics.print("Y-axis force: " .. self.g, 400, 0 * 12)
+		love.graphics.print(string.format("Falling: %s", self.falling), 400, 1 * 12)
+		love.graphics.print(string.format("Jumping: %s", self.jumping), 400, 2 * 12)
+
+		if DEBUG then
+			local cells = self:getOccupiedCells(self.x, self.y)
+			for i, v in ipairs(cells) do
+				love.graphics.setColor(255, 255, 255)
+				love.graphics.print("Tiles to check: (" .. v.x .. "," .. v.y .. ")", 0, i * 12 + (12))
+			end
+		end
+
+		camera:set()
 	end
-	camera:set()
 end
