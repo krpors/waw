@@ -1,6 +1,7 @@
 require "level"
 require "player"
 require "camera"
+require "layer"
 
 local font
 
@@ -18,16 +19,32 @@ soundJump = love.audio.newSource("sounds/jump.wav", "static")
 soundBump = love.audio.newSource("sounds/bump.wav", "static")
 soundDrop = love.audio.newSource("sounds/drop.wav", "static")
 
+
+function loadLayers()
+	local layer1 = Layer.new(0.2)
+	layer1:loadImage("images/norfair-01.bmp")
+	layer1.pulsating = false
+
+	local layer2 = Layer.new(2.0)
+	layer2:loadImage("images/bubbles.png") 
+	layer2.pulsating = true 
+	layer2.opacity = 255
+
+	camera:addLayer(layer1)
+	camera:addLayer(layer2)
+end
+
 function love.load()
 	level = Level.new()
 	player = Player.new()
 	player:setLevel(level)
 
 	-- just playtesting here
-	camera:setBounds(0, 0, 400, 600/2)
+	local maxX, maxY = level:getDimensions()
+	camera:setBounds(0, 0, maxX / 3, maxY / 3)
 
 	music = love.audio.newSource("sounds/razor-ub.it", "stream")
-	music:play()
+	--music:play()
 
 	alb = love.graphics.newImageFont("images/font.png", 
 		" abcdefghijklmnopqrstuvwxyz" ..
@@ -36,96 +53,23 @@ function love.load()
 
 	love.graphics.setFont(alb)
 
-
-	local bgimage = love.graphics.newImage("images/norfair-01.bmp")
-	local phantoonAtlas = love.graphics.newImage("images/phantoon.png")
-	phantoonAtlas:setFilter("nearest", "nearest")
-	local quad = love.graphics.newQuad(0, 10, 71, 112, phantoonAtlas:getWidth(), phantoonAtlas:getHeight())
-
-	camera:newLayer(0.1, 
-		function()
-			for i = -10, 10 do
-				for j = -10, 10 do
-					love.graphics.setColor(255, 255, 255)
-					love.graphics.draw(bgimage, i * 256, j * 256)
-				end
-			end
-		end)
-
-	-- This is ugly. Default scope is global so we can misuse this to
-	-- quickly prototype something :) 
-	opacity = 120
-	oc = 2
-
-	camera:newLayer(0.2,
-		function()
-			if opacity >= 254  then oc = -1 end 
-			if opacity <= 0 then oc = 1 end
-
-			opacity = opacity + oc
-			love.graphics.setColor(255, opacity, 255, opacity)
-			love.graphics.draw(phantoonAtlas, quad, 200, 300, 0, 5)
-		end)
+	loadLayers()
 end
 
 function love.update(dt)
 	player:update(dt)
+	camera:update(dt)
 	-- center the cam on the player (lock in)
 	camera:setPosition(player.x - 800/2 * camera.scaleX, player.y - 600/2 * camera.scaleY)
-
-	if zooming_in then
-		if zoomspeed <= 0.5 then
-			zooming_in = false
-		else
-			zoomspeed = zoomspeed - dt
-			camera:setScale(zoomspeed, zoomspeed)
-		end
-	end
-
-	if zooming_out then
-		if zoomspeed >= 2 then
-			zooming_out = false
-		else
-			zoomspeed = zoomspeed + dt
-			camera:setScale(zoomspeed, zoomspeed)
-		end
-	end
 end
 
 function love.keypressed(key)
-	if key == "escape" then
-		love.event.quit()
-	end
-
-	if key == "a" then
-		zooming_in = true
-		zooming_out = false
-	end
-
-	if key == "s" then
-		zooming_in = false
-		zooming_out = true
-	end
-
-	if key == "left" then
-		player:left()
-	end
-
-	if key == "right" then
-		player:right()
-	end
-
-	if key == "up" then
-		player:up()
-	end
-
-	if key == "down" then
-		player:down()
-	end
-	if key == " " then
-		player:jump()
-	end
-
+	if key == "escape" then love.event.quit() end
+	if key == "left" then player:left() end
+	if key == "right" then player:right() end
+	if key == "up" then player:up() end
+	if key == "down" then player:down() end
+	if key == " " then player:jump() end
 end
 
 function love.keyreleased(key)
@@ -143,11 +87,4 @@ function love.draw()
 	player:draw()
 
 	camera:unset()
-
-	local lolcolor = { math.random() * 255, math.random() * 255, math.random() * 255}
-
-	love.graphics.scale(5, 5)
-	love.graphics.setColor(lolcolor[1] , lolcolor[2], lolcolor[3])
-	love.graphics.print("DOPERWT", math.random() * 2, math.random() * 2 + 5)
-
 end

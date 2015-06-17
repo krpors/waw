@@ -4,8 +4,8 @@ Player.__index = Player
 function Player.new()
 	local self = setmetatable({}, Player)
 
-	self.width = 30
-	self.height = 30
+	self.width = 20
+	self.height = 20
 	self.speed = 200
 
 	-- the downward velocity

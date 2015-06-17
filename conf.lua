@@ -7,4 +7,7 @@ function love.conf(t)
 	t.window.height = 600 
 	t.window.fsaa = 0
 	t.window.display = 1
+
+	-- for debugging on windows...
+	t.console = true
 end
