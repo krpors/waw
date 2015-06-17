@@ -4,8 +4,20 @@ Player.__index = Player
 function Player.new()
 	local self = setmetatable({}, Player)
 
+	self.dtotal = 0
+
+	self.sii = 1 -- sprite index iterator (forward or backward)
+	self.spriteindex = 1
+
+	self.samusSprite = love.graphics.newImage("images/samus.png")
+	self.q1 = love.graphics.newQuad(249, 310, 26, 43, self.samusSprite:getWidth(), self.samusSprite:getHeight())
+	self.q2 = love.graphics.newQuad(299, 310, 26, 43, self.samusSprite:getWidth(), self.samusSprite:getHeight())
+	self.q3 = love.graphics.newQuad(349, 310, 26, 43, self.samusSprite:getWidth(), self.samusSprite:getHeight())
+
+	self.quads = { self.q1, self.q2, self.q3 }
+
 	self.width = 20
-	self.height = 20
+	self.height = 43 
 	self.speed = 200
 
 	-- the downward velocity
@@ -98,6 +110,19 @@ end
 
 -- Updates the player's position by acting on movement by the actual player.
 function Player:update(dt)
+	-- update sprite quad stuff
+	self.dtotal = self.dtotal + dt
+	if self.dtotal > 0.2 then
+		self.dtotal = 0
+		self.spriteindex = self.spriteindex + self.sii
+		if self.spriteindex >= 3 then
+			self.sii = -1
+		elseif self.spriteindex <= 1 then
+			self.sii = 1
+		end
+	end
+	
+
 	local newx
 	local newy
 
@@ -183,7 +208,12 @@ end
 -- Actually draws the player on the screen
 function Player:draw()
 	love.graphics.setColor(255, 255, 255)
-	love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+	love.graphics.draw(self.samusSprite, self.quads[self.spriteindex], self.x, self.y, 0, 1, 1)
+
+	if DEBUG then
+		love.graphics.setColor(255, 0, 0, 155)
+		love.graphics.rectangle("fill", self.x, self.y, self.width, self.height)
+	end
 
 	-- pop the camera, draw some debuggin' crap
 	if DEBUG then
