@@ -73,10 +73,9 @@ function love.keypressed(key)
 	if key == "escape" then love.event.quit() end
 	if key == "left" then player:left() end
 	if key == "right" then player:right() end
-	if key == "up" then player:up() end
-	if key == "down" then player:down() end
 	if key == " " then player:jump() end
 	if key == "d" then DEBUG = not DEBUG end
+	if key == "f" then love.window.setFullscreen(true) end
 	if key == "l" then 
 		level.map = love.filesystem.load("levels/002.lua")()
 	end

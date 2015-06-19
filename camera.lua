@@ -43,7 +43,7 @@ end
 
 function camera:setX(x)
 	if self.bounds then
-		self.x = clamp(x, self.bounds.minx, self.bounds.maxx)
+		self.x = util:clamp(x, self.bounds.minx, self.bounds.maxx)
 	else
 		self.x = x or self.x
 	end
@@ -51,7 +51,7 @@ end
 
 function camera:setY(y)
 	if self.bounds then
-		self.y = clamp(y, self.bounds.miny, self.bounds.maxy)
+		self.y = util:clamp(y, self.bounds.miny, self.bounds.maxy)
 	else
 		self.y = y or self.y
 	end
